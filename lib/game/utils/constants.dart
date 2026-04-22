@@ -60,7 +60,7 @@ class GameConfig {
   static const double playerBottomMargin = 120.0;
   static const double laneSwitchDuration = 0.15;
 
-  static const double jumpHeight = 160.0;
+  static const double jumpHeight = 260.0;
   static const double jumpDuration = 0.60;
 
   static const double playerTopMargin = 84.0;
