@@ -1,3 +1,5 @@
+![Banner](assets/banner.png)
+
 <h1 align="center">Pixel Runner</h1>
 
 <p align="center">
