@@ -23,7 +23,7 @@ class GameState {
   bool get magnetActive => magnetTimeRemaining > 0;
   bool get doubleCoinActive => doubleCoinTimeRemaining > 0;
   bool get boostActive => boostTimeRemaining > 0;
-  double get coinMultiplier => doubleCoinActive ? 2.0 : 1.0;
+  double get coinMultiplier => doubleCoinActive ? 4.0 : 1.0;
 
   void updateTimers(double dt) {
     shieldTimeRemaining = (shieldTimeRemaining - dt).clamp(0.0, 9999.0);
