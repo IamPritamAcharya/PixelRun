@@ -1,104 +1,114 @@
 import 'dart:ui';
 
 class GameColors {
-  static const Color darkBg = Color(0xFF080818);
-  static const Color darkBg2 = Color(0xFF0c0c28);
-  static const Color roadColor = Color(0xFF2a2a2a);
-  static const Color roadColor2 = Color(0xFF303030);
-  static const Color roadLine = Color(0xFFffffff);
+  // Sky & World
+  static const Color skyTop = Color(0xFF5C94FC);
+  static const Color skyBottom = Color(0xFF9BB8FF);
+  static const Color groundTop = Color(0xFF6AB04C);
+  static const Color groundBody = Color(0xFF4A7C2F);
+  static const Color groundDark = Color(0xFF2D5016);
 
-  static const Color grassColor = Color(0xFF162e1e);
-  static const Color grassDark = Color(0xFF0e1e14);
-  static const Color skyColor = Color(0xFF080818);
-
-  static const Color playerColor = Color(0xFF29b6f6);
+  // Player
+  static const Color playerBody = Color(0xFF29b6f6);
   static const Color playerDark = Color(0xFF0277bd);
-  static const Color playerGlow = Color(0x3329b6f6);
+  static const Color playerAccent = Color(0xFFFF6B6B);
 
-  static const Color obstacleTall = Color(0xFFe53935);
-  static const Color obstacleTallDark = Color(0xFF880000);
-  static const Color obstacleLow = Color(0xFF8d6e63);
-  static const Color obstacleLowDark = Color(0xFF4e342e);
-  static const Color obstacleWide = Color(0xFF546e7a);
-  static const Color obstacleWideDark = Color(0xFF263238);
-  static const Color obstacleWater = Color(0xFF2467d6);
-  static const Color obstacleWaterDark = Color(0xFF12308a);
+  // Platforms
+  static const Color platformTop = Color(0xFF8B6914);
+  static const Color platformBody = Color(0xFF6B4F0E);
+  static const Color platformDark = Color(0xFF4A3509);
+  static const Color brickPlatformTop = Color(0xFFCC4444);
+  static const Color brickPlatformBody = Color(0xFFAA3333);
+  static const Color pipePlatformColor = Color(0xFF2E8B2E);
+  static const Color pipePlatformDark = Color(0xFF1A6B1A);
 
+  // Enemies
+  static const Color enemyGoomba = Color(0xFF8B4513);
+  static const Color enemyGoombaDark = Color(0xFF5C2D0A);
+  static const Color enemyKoopa = Color(0xFF228B22);
+  static const Color enemyKoopaDark = Color(0xFF145214);
+  static const Color enemyFlying = Color(0xFFDC143C);
+  static const Color enemyFlyingDark = Color(0xFF8B0000);
+
+  // Collectibles
   static const Color coin = Color(0xFFffd700);
   static const Color coinDark = Color(0xFFff8f00);
-  static const Color coinGlow = Color(0x44ffd700);
 
-  static const Color shield = Color(0xFF00EEFF);
-  static const Color magnet = Color(0xFFe91e63);
-  static const Color doubleCoins = Color(0xFFffee00);
-  static const Color boost = Color(0xFF22cc55);
+  // Superpowers
+  static const Color fireOrb = Color(0xFFFF4500);
+  static const Color teleportOrb = Color(0xFF9B59B6);
+  static const Color starOrb = Color(0xFFFFFF00);
+  static const Color shieldOrb = Color(0xFF00BFFF);
 
-  static const Color pixelBrown = Color(0xFF7e5c3e);
-  static const Color pixelLight = Color(0xFFe0cfb0);
-  static const Color pixelAccent = Color(0xFFe91e63);
-  static const Color pixelGreen = Color(0xFF22cc55);
-  static const Color pixelRed = Color(0xFFf44336);
-  static const Color pixelYellow = Color(0xFFffee00);
-  static const Color textPrimary = Color(0xFFffffff);
+  // Projectile
+  static const Color fireball = Color(0xFFFF6600);
+  static const Color fireballCore = Color(0xFFFFFF00);
+
+  // UI
+  static const Color textPrimary = Color(0xFFFFFFFF);
   static const Color textSecondary = Color(0xFF8899bb);
-
+  static const Color uiBg = Color(0xDD080818);
+  static const Color uiBorder = Color(0xFF3a6aaa);
   static const Color neonCyan = Color(0xFF00EEFF);
   static const Color neonPink = Color(0xFFe91e63);
   static const Color neonPurple = Color(0xFF9c27b0);
   static const Color neonGreen = Color(0xFF22cc55);
+
+  // Legacy compatibility aliases
+  static const Color playerColor = playerBody;
+  static const Color darkBg = Color(0xFF080818);
+  static const Color darkBg2 = Color(0xFF0c0c28);
+  static const Color pixelYellow = Color(0xFFffee00);
+  static const Color pixelGreen = Color(0xFF22cc55);
   static const Color glassWhite = Color(0xDD0d0d28);
   static const Color glassBorder = Color(0xFF2255aa);
 }
 
 class GameConfig {
-  static const int laneCount = 3;
+  // World
+  static const double gravity = 1800.0;
+  static const double groundY = 0.85; // fraction of screen height = ground surface
 
-  static const double laneHeight = 52.0;
+  // Player
+  static const double playerWidth = 32.0;
+  static const double playerHeight = 42.0;
+  static const double playerXOffset = 100.0;
+  static const double jumpVelocity = -640.0;
+  static const double doubleJumpVelocity = -560.0;
+  static const double moveSpeed = 0.0; // player stays at X; world scrolls
 
-  static double get roadHeight => laneCount * laneHeight;
+  // Scroll speed
+  static const double initialSpeed = 220.0;
+  static const double maxSpeed = 600.0;
+  static const double speedIncrement = 15.0;
+  static const int speedIncreaseInterval = 300;
 
-  static const double playerWidth = 30.0;
-  static const double playerHeight = 38.0;
+  // Camera / scroll
+  static const double cameraLookAhead = 0.0;
 
-  static const double playerXOffset = 86.0;
+  // Enemies
+  static const double enemyWidth = 36.0;
+  static const double enemyHeight = 36.0;
+  static const double flyingEnemyHeight = 30.0;
 
-  static const double playerGroundOffset = 6.0;
+  // Platform sizes
+  static const double platformH = 20.0;
+  static const double tileSize = 32.0;
 
-  static const double jumpHeight = 150.0;
-  static const double jumpDuration = 0.58;
-
-  static const double laneSwitchDuration = 0.13;
-
-  static const double obstacleTallHeight = 44.0;
-  static const double obstacleTallWidth = 24.0;
-
-  static const double obstacleLowHeight = 18.0;
-  static const double obstacleLowWidth = 34.0;
-
-  static const double obstacleWideWidth = 24.0;
-
-  static const double obstacleWaterHeight = 14.0;
-  static const double obstacleWaterWidth = 42.0;
-
-  static const double initialSpeed = 280.0;
-  static const double maxSpeed = 820.0;
-  static const double speedIncrement = 18.0;
-  static const int speedIncreaseInterval = 400;
-
-  static const double initialSpawnInterval = 1.8;
-  static const double minSpawnInterval = 0.45;
-  static const double spawnIntervalDecrease = 0.05;
-  static const double coinSpawnChance = 0.48;
-  static const double powerUpSpawnChance = 0.28;
-
-  static const double shieldDuration = 6.0;
-  static const double magnetDuration = 7.5;
-  static const double doubleCoinDuration = 8.0;
-  static const double boostDuration = 4.0;
-  static const double boostSpeedBonus = 120.0;
-
+  // Scoring
   static const int coinScore = 10;
   static const int distanceScoreRate = 1;
 
-  static const double roadTopFraction = 0.54;
+  // Superpower durations
+  static const double fireDuration = 8.0;
+  static const double teleportCooldown = 0.0; // instant use
+  static const double starDuration = 7.0;
+  static const double shieldDuration = 6.0;
+
+  // Fireball
+  static const double fireballSpeed = 520.0;
+  static const double fireballSize = 14.0;
+
+  // Level progression
+  static const double levelLength = 3000.0; // world units before next level
 }

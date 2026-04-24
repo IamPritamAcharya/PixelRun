@@ -1,142 +1,166 @@
 import 'dart:ui';
-import 'package:flutter/animation.dart';
+import 'dart:math' as math;
 import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
-import 'package:runner/game/runner_game.dart';
+import 'package:runner/game/platformer_game.dart';
 import 'package:runner/game/utils/constants.dart';
 
-class Player extends PositionComponent with HasGameReference<RunnerGame> {
-  int currentLane = 1;
-  int targetLane = 1;
+class Player extends PositionComponent with HasGameReference<PlatformerGame> {
+  double _vy = 0.0;
+  double get vy => _vy;
+  double _vx = 0.0;
+  bool _onGround = false;
+  bool _jumping = false;
+  bool _canDoubleJump = false;
+  bool _hasDoubleJumped = false;
 
-  double _currentCenterY = 0;
-  double _targetCenterY = 0;
+  double worldX = 0.0;
 
-  bool isJumping = false;
-  double _jumpTime = 0;
-  double _jumpProgress = 0.0;
+  bool movingRight = false;
+  bool movingLeft = false;
 
-  double _baseY = 0;
+  static const double walkSpeed = 230.0;
+  static const double runSpeed = 320.0;
 
   double _legTimer = 0;
   bool _legPhase = false;
-  double _armSwing = 0;
-
   double _flashTimer = 0;
   bool _visible = true;
+  double _runTimer = 0;
 
-  static const Color _white = Color(0xFFFFFFFF);
+  double _starColorTimer = 0;
+  int _starColorIndex = 0;
+  static const _starColors = [
+    Color(0xFFFF6B6B),
+    Color(0xFFFFD700),
+    Color(0xFF00FF88),
+    Color(0xFF00BFFF),
+    Color(0xFFFF69B4),
+    Color(0xFFAA88FF),
+  ];
 
-  bool get isAirborneSafe {
-    if (!isJumping) return false;
-    final feetY = position.y + size.y;
-    return (_baseY - feetY) > 10;
-  }
+  double get screenX => game.size.x * 0.28;
+
+  bool get onGround => _onGround;
+  bool get isMoving => movingRight || movingLeft;
 
   @override
   Future<void> onLoad() async {
     size = Vector2(GameConfig.playerWidth, GameConfig.playerHeight);
-
-    _currentCenterY = _laneCenterY(currentLane);
-    _targetCenterY = _currentCenterY;
-    _baseY = _laneGroundY(currentLane);
-
-    position = Vector2(
-      GameConfig.playerXOffset - size.x / 2,
-      _currentCenterY - size.y / 2,
-    );
+    priority = 10;
   }
 
-  double _laneGroundY(int lane) => game.road.laneGroundY(lane);
-  double _laneCenterY(int lane) => game.road.laneCenterY(lane);
-
-  void moveUp() {
-    if (currentLane > 0) {
-      currentLane--;
-      targetLane = currentLane;
-      _targetCenterY = _laneCenterY(currentLane);
-      _baseY = _laneGroundY(currentLane);
-      game.audioManager.playLaneSwitch();
-    }
-  }
-
-  void moveDown() {
-    if (currentLane < GameConfig.laneCount - 1) {
-      currentLane++;
-      targetLane = currentLane;
-      _targetCenterY = _laneCenterY(currentLane);
-      _baseY = _laneGroundY(currentLane);
-      game.audioManager.playLaneSwitch();
-    }
+  void placeOnGround() {
+    final cam = game.cameraX;
+    worldX = cam + screenX - size.x / 2;
+    position = Vector2(screenX - size.x / 2, game.groundSurfaceY - size.y);
+    _vy = 0;
+    _vx = 0;
+    _onGround = true;
+    _jumping = false;
+    _hasDoubleJumped = false;
+    _canDoubleJump = false;
+    movingRight = false;
+    movingLeft = false;
   }
 
   void jump() {
-    if (!isJumping) {
-      isJumping = true;
-      _jumpTime = 0;
-      _jumpProgress = 0.0;
+    if (_onGround) {
+      _vy = GameConfig.jumpVelocity;
+      _onGround = false;
+      _jumping = true;
+      _canDoubleJump = true;
+      _hasDoubleJumped = false;
       game.audioManager.playJump();
       add(
         ScaleEffect.to(
-          Vector2(0.82, 1.20),
-          EffectController(duration: 0.07, reverseDuration: 0.12),
+          Vector2(0.80, 1.25),
+          EffectController(duration: 0.06, reverseDuration: 0.10),
+        ),
+      );
+    } else if (_canDoubleJump && !_hasDoubleJumped) {
+      _vy = GameConfig.doubleJumpVelocity;
+      _hasDoubleJumped = true;
+      game.audioManager.playJump();
+      add(
+        ScaleEffect.to(
+          Vector2(0.85, 1.18),
+          EffectController(duration: 0.05, reverseDuration: 0.09),
         ),
       );
     }
   }
 
-  void triggerInvincibilityFlash() => _flashTimer = 1.0;
-
-  void resetPose() {
-    isJumping = false;
-    _jumpTime = 0;
-    _jumpProgress = 0;
-    _currentCenterY = _laneCenterY(currentLane);
-    _targetCenterY = _currentCenterY;
-    _baseY = _laneGroundY(currentLane);
-    position = Vector2(
-      GameConfig.playerXOffset - size.x / 2,
-      _currentCenterY - size.y / 2,
-    );
+  void triggerHit() {
+    _flashTimer = 1.5;
   }
+
+  void stompEnemy() {
+    _vy = GameConfig.jumpVelocity * 0.6;
+    _onGround = false;
+    _jumping = true;
+    _canDoubleJump = true;
+    _hasDoubleJumped = false;
+  }
+
+  bool get isStarActive => game.gameState.starActive;
+  bool get isShieldActive => game.gameState.shieldActive;
 
   @override
   void update(double dt) {
     super.update(dt);
 
-    _currentCenterY = _lerp(_currentCenterY, _targetCenterY, dt * 14);
+    final speed = isStarActive ? runSpeed * 1.3 : runSpeed;
+    if (movingRight) {
+      _vx = speed;
+    } else if (movingLeft) {
+      _vx = -speed;
+    } else {
+      _vx = 0;
+    }
 
-    if (isJumping) {
-      _jumpTime += dt;
-      _jumpProgress = (_jumpTime / GameConfig.jumpDuration).clamp(0.0, 1.0);
+    worldX += _vx * dt;
 
-      final arc = _sinArc(_jumpProgress);
-      final restY = _currentCenterY - size.y / 2;
+    worldX = worldX.clamp(0.0, game.levelWorldLength + 200);
 
-      position.y = restY - GameConfig.jumpHeight * arc;
+    if (!_onGround) {
+      _vy += GameConfig.gravity * dt;
+    }
+    position.y += _vy * dt;
 
-      if (_jumpProgress >= 1.0) {
-        isJumping = false;
-        position.y = restY;
+    final gY = game.groundSurfaceY;
+    if (position.y + size.y >= gY) {
+      position.y = gY - size.y;
+      _vy = 0;
+      if (!_onGround) {
+        _onGround = true;
+        _jumping = false;
+        _hasDoubleJumped = false;
         add(
           ScaleEffect.to(
-            Vector2(1.12, 0.88),
-            EffectController(duration: 0.06, reverseDuration: 0.10),
+            Vector2(1.15, 0.85),
+            EffectController(duration: 0.05, reverseDuration: 0.09),
           ),
         );
       }
-    } else {
-      position.y = _currentCenterY - size.y / 2;
     }
 
-    position.x = GameConfig.playerXOffset - size.x / 2;
+    position.x = screenX - size.x / 2;
 
-    _legTimer += dt * 9;
+    _legTimer += dt * (isMoving ? (isStarActive ? 18 : 9) : 3);
     if (_legTimer >= 1.0) {
       _legTimer = 0;
       _legPhase = !_legPhase;
     }
-    _armSwing = _legPhase ? 1.0 : -1.0;
+
+    _runTimer +=
+        dt *
+        (movingRight
+            ? 1
+            : movingLeft
+            ? -1
+            : 0) *
+        4;
 
     if (_flashTimer > 0) {
       _flashTimer -= dt;
@@ -144,77 +168,146 @@ class Player extends PositionComponent with HasGameReference<RunnerGame> {
     } else {
       _visible = true;
     }
+
+    if (isStarActive) {
+      _starColorTimer += dt * 8;
+      if (_starColorTimer >= 1.0) {
+        _starColorTimer = 0;
+        _starColorIndex = (_starColorIndex + 1) % _starColors.length;
+      }
+    }
   }
 
-  double _sinArc(double t) => (t >= 0 && t <= 1) ? _sin01(t) : 0.0;
-  double _sin01(double t) => 4.0 * t * (1.0 - t);
-  double _lerp(double a, double b, double t) => a + (b - a) * t.clamp(0.0, 1.0);
+  void landOnPlatform(double platformTopY) {
+    if (_vy >= 0) {
+      position.y = platformTopY - size.y;
+      _vy = 0;
+      if (!_onGround) {
+        _onGround = true;
+        _jumping = false;
+        _hasDoubleJumped = false;
+      }
+    }
+  }
+
+  void leaveGround() {
+    _onGround = false;
+  }
 
   @override
   void render(Canvas canvas) {
     if (!_visible) return;
 
-    final feetY = size.y;
-    final restFeetY =
-        _laneGroundY(currentLane) -
-        (game.road.roadTop + currentLane * GameConfig.laneHeight);
-    final airFraction = isJumping
-        ? ((restFeetY - feetY).abs() / GameConfig.jumpHeight).clamp(0.0, 1.0)
-        : 0.0;
+    final bodyColor = isStarActive
+        ? _starColors[_starColorIndex]
+        : isShieldActive
+        ? const Color(0xFF00BFFF)
+        : GameColors.playerBody;
 
-    final shadowW = size.x * (0.75 - airFraction * 0.40);
-    final shadowAlpha = (0.40 * (1 - airFraction * 0.75)).clamp(0.05, 0.40);
+    final darkColor = isStarActive
+        ? bodyColor.withAlpha(180)
+        : GameColors.playerDark;
 
-    final groundLocalY =
-        _laneGroundY(currentLane) -
-        (game.road.roadTop + currentLane * GameConfig.laneHeight) +
-        currentLane * GameConfig.laneHeight;
+    if (isShieldActive) {
+      canvas.drawCircle(
+        Offset(size.x / 2, size.y / 2),
+        size.x * 0.75,
+        Paint()
+          ..color = const Color(0x4400BFFF)
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6),
+      );
+      canvas.drawCircle(
+        Offset(size.x / 2, size.y / 2),
+        size.x * 0.74,
+        Paint()
+          ..color = const Color(0x5500BFFF)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2,
+      );
+    }
 
-    canvas.drawOval(
-      Rect.fromCenter(
-        center: Offset(size.x / 2, size.y + 4),
-        width: shadowW.clamp(8.0, size.x),
-        height: 6,
-      ),
-      Paint()..color = Color.fromRGBO(0, 0, 0, shadowAlpha),
-    );
+    if (isStarActive) {
+      for (int i = 0; i < 5; i++) {
+        final angle = (i / 5) * math.pi * 2 + _starColorTimer * math.pi * 2;
+        final r =
+            size.x * 0.7 + math.sin(_starColorTimer * math.pi * 2 + i) * 4;
+        canvas.drawCircle(
+          Offset(
+            size.x / 2 + math.cos(angle) * r,
+            size.y / 2 + math.sin(angle) * r,
+          ),
+          3.5,
+          Paint()
+            ..color = _starColors[(i + _starColorIndex) % _starColors.length],
+        );
+      }
+    }
 
-    _drawCharacter(canvas);
+    _drawCharacter(canvas, bodyColor, darkColor);
   }
 
-  void _drawCharacter(Canvas canvas) {
+  void _drawCharacter(Canvas canvas, Color bodyColor, Color darkColor) {
     final pw = size.x;
     final ph = size.y;
 
-    canvas.drawRect(
-      Rect.fromLTWH(pw * 0.14, ph * 0.02, pw * 0.72, ph * 0.52),
-      Paint()..color = GameColors.playerColor,
+    canvas.drawOval(
+      Rect.fromCenter(
+        center: Offset(pw / 2, ph + 3),
+        width: pw * 0.8,
+        height: ph * 0.12,
+      ),
+      Paint()..color = const Color(0x44000000),
     );
-    canvas.drawRect(
-      Rect.fromLTWH(pw * 0.14, ph * 0.02, pw * 0.72, ph * 0.52),
+
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(pw * 0.14, ph * 0.02, pw * 0.72, ph * 0.52),
+        const Radius.circular(3),
+      ),
+      Paint()..color = bodyColor,
+    );
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(pw * 0.14, ph * 0.02, pw * 0.72, ph * 0.52),
+        const Radius.circular(3),
+      ),
       Paint()
-        ..color = GameColors.playerDark
+        ..color = darkColor
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 2,
+        ..strokeWidth = 1.5,
     );
 
-    canvas.drawRect(
-      Rect.fromLTWH(pw * 0.20, ph * 0.06, pw * 0.16, ph * 0.20),
-      Paint()..color = const Color(0x55FFFFFF),
-    );
-
-    canvas.drawRect(
-      Rect.fromLTWH(pw * 0.20, ph * 0.04, pw * 0.60, ph * 0.24),
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(pw * 0.20, ph * 0.04, pw * 0.60, ph * 0.24),
+        const Radius.circular(2),
+      ),
       Paint()..color = const Color(0xFF0d1020),
     );
+
     canvas.drawRect(
-      Rect.fromLTWH(pw * 0.22, ph * 0.05, pw * 0.56, ph * 0.07),
-      Paint()..color = const Color(0x33FFFFFF),
+      Rect.fromLTWH(pw * 0.22, ph * 0.05, pw * 0.56, ph * 0.06),
+      Paint()..color = const Color(0x44FFFFFF),
     );
 
-    final Color eyeColor = isJumping
+    final eyeColor = _jumping
         ? const Color(0xFFFFFF00)
-        : const Color(0xFF00EEFF);
+        : isStarActive
+        ? _starColors[(_starColorIndex + 2) % _starColors.length]
+        : GameColors.neonCyan;
+
+    canvas.drawRect(
+      Rect.fromLTWH(pw * 0.25, ph * 0.08, pw * 0.20, ph * 0.12),
+      Paint()
+        ..color = eyeColor.withAlpha(50)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3),
+    );
+    canvas.drawRect(
+      Rect.fromLTWH(pw * 0.55, ph * 0.08, pw * 0.20, ph * 0.12),
+      Paint()
+        ..color = eyeColor.withAlpha(50)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3),
+    );
 
     canvas.drawRect(
       Rect.fromLTWH(pw * 0.26, ph * 0.09, pw * 0.18, ph * 0.11),
@@ -224,19 +317,12 @@ class Player extends PositionComponent with HasGameReference<RunnerGame> {
       Rect.fromLTWH(pw * 0.56, ph * 0.09, pw * 0.18, ph * 0.11),
       Paint()..color = eyeColor,
     );
-    canvas.drawRect(
-      Rect.fromLTWH(pw * 0.30, ph * 0.11, pw * 0.09, ph * 0.07),
-      Paint()..color = const Color(0xFF001020),
-    );
-    canvas.drawRect(
-      Rect.fromLTWH(pw * 0.60, ph * 0.11, pw * 0.09, ph * 0.07),
-      Paint()..color = const Color(0xFF001020),
-    );
 
     canvas.drawRect(
       Rect.fromLTWH(pw * 0.14, ph * 0.54, pw * 0.72, ph * 0.06),
       Paint()..color = const Color(0xFF1a3a5e),
     );
+
     canvas.drawRect(
       Rect.fromLTWH(pw * 0.42, ph * 0.54, pw * 0.16, ph * 0.06),
       Paint()..color = const Color(0xFFffd700),
@@ -244,59 +330,115 @@ class Player extends PositionComponent with HasGameReference<RunnerGame> {
 
     final legW = pw * 0.26;
     final legY = ph * 0.60;
-    const legH = 0.32;
+    const legFrac = 0.32;
 
-    final double leftOff = isJumping
+    final leftOff = _jumping
         ? -ph * 0.06
-        : (_legPhase ? -ph * 0.07 : ph * 0.05);
-
-    canvas.drawRect(
-      Rect.fromLTWH(
-        pw * 0.15,
-        legY + leftOff.clamp(-ph * 0.08, 0),
-        legW,
-        ph * legH + leftOff.abs() * 0.2,
+        : (isMoving ? (_legPhase ? -ph * 0.09 : ph * 0.06) : 0.0);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(
+          pw * 0.15,
+          legY + leftOff.clamp(-ph * 0.10, 0),
+          legW,
+          ph * legFrac + leftOff.abs() * 0.2,
+        ),
+        const Radius.circular(2),
       ),
-      Paint()..color = GameColors.playerDark,
+      Paint()..color = darkColor,
     );
-
     final rightOff = -leftOff;
-    canvas.drawRect(
-      Rect.fromLTWH(
-        pw * 0.58,
-        legY + rightOff.clamp(-ph * 0.08, 0),
-        legW,
-        ph * legH + rightOff.abs() * 0.2,
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(
+          pw * 0.58,
+          legY + rightOff.clamp(-ph * 0.10, 0),
+          legW,
+          ph * legFrac + rightOff.abs() * 0.2,
+        ),
+        const Radius.circular(2),
       ),
-      Paint()..color = GameColors.playerDark,
+      Paint()..color = darkColor,
     );
 
-    final bootColor = const Color(0xFF1a2030);
-    canvas.drawRect(
-      Rect.fromLTWH(pw * 0.12, legY + ph * legH - 2, legW + 6, 10),
+    const bootColor = Color(0xFF1a2030);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(pw * 0.10, legY + ph * legFrac - 2, legW + 8, 11),
+        const Radius.circular(2),
+      ),
       Paint()..color = bootColor,
     );
-    canvas.drawRect(
-      Rect.fromLTWH(pw * 0.55, legY + ph * legH - 2, legW + 6, 10),
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(pw * 0.53, legY + ph * legFrac - 2, legW + 8, 11),
+        const Radius.circular(2),
+      ),
       Paint()..color = bootColor,
-    );
-    canvas.drawRect(
-      Rect.fromLTWH(pw * 0.12, legY + ph * legH + 5, legW + 6, 3),
-      Paint()..color = const Color(0xFFDDDDDD),
-    );
-    canvas.drawRect(
-      Rect.fromLTWH(pw * 0.55, legY + ph * legH + 5, legW + 6, 3),
-      Paint()..color = const Color(0xFFDDDDDD),
     );
 
-    final armOff = isJumping ? -ph * 0.06 : _armSwing * ph * 0.06;
-    canvas.drawRect(
-      Rect.fromLTWH(pw * 0.00, ph * 0.07 + armOff, pw * 0.14, ph * 0.28),
-      Paint()..color = GameColors.playerColor,
+    final armOff = _jumping
+        ? -ph * 0.07
+        : (isMoving ? (_legPhase ? ph * 0.07 : -ph * 0.07) : 0.0);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(0, ph * 0.07 + armOff, pw * 0.14, ph * 0.28),
+        const Radius.circular(2),
+      ),
+      Paint()..color = bodyColor,
     );
-    canvas.drawRect(
-      Rect.fromLTWH(pw * 0.86, ph * 0.07 - armOff, pw * 0.14, ph * 0.28),
-      Paint()..color = GameColors.playerColor,
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(pw * 0.86, ph * 0.07 - armOff, pw * 0.14, ph * 0.28),
+        const Radius.circular(2),
+      ),
+      Paint()..color = bodyColor,
+    );
+
+    if (game.gameState.fireActive) {
+      final fireT = _starColorTimer;
+      canvas.drawCircle(
+        Offset(pw * 0.93, ph * 0.14 - armOff),
+        6,
+        Paint()
+          ..color = GameColors.fireOrb.withAlpha(80)
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4),
+      );
+      canvas.drawCircle(
+        Offset(pw * 0.93, ph * 0.14 - armOff),
+        5,
+        Paint()..color = GameColors.fireOrb,
+      );
+      canvas.drawCircle(
+        Offset(pw * 0.93, ph * 0.14 - armOff),
+        3,
+        Paint()..color = GameColors.fireballCore,
+      );
+    }
+
+    if (movingLeft) {
+      _drawChevron(
+        canvas,
+        pw * 0.86,
+        ph * 0.22,
+        true,
+        bodyColor.withAlpha(180),
+      );
+    }
+  }
+
+  void _drawChevron(Canvas canvas, double x, double y, bool left, Color color) {
+    final path = Path();
+    final d = left ? 4.0 : -4.0;
+    path.moveTo(x + d, y - 5);
+    path.lineTo(x - d, y);
+    path.lineTo(x + d, y + 5);
+    canvas.drawPath(
+      path,
+      Paint()
+        ..color = color
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2,
     );
   }
 }

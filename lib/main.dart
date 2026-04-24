@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:runner/game/utils/constants.dart';
 import 'package:runner/screens/game_screen.dart';
 import 'package:runner/screens/info_screen.dart';
+import 'package:runner/screens/level_select_screen.dart';
 import 'package:runner/screens/main_menu_screen.dart';
 import 'package:runner/screens/settings_screen.dart';
 
@@ -19,7 +20,7 @@ void main() async {
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
       statusBarIconBrightness: Brightness.light,
-      systemNavigationBarColor: GameColors.darkBg,
+      systemNavigationBarColor: Color(0xFF080818),
     ),
   );
   runApp(const RunnerApp());
@@ -31,18 +32,18 @@ class RunnerApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Pixel Runner',
+      title: 'Pixel Jumper',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         brightness: Brightness.dark,
-        scaffoldBackgroundColor: GameColors.darkBg,
+        scaffoldBackgroundColor: const Color(0xFF080818),
         textTheme: GoogleFonts.pressStart2pTextTheme(
           ThemeData.dark().textTheme,
         ),
         colorScheme: const ColorScheme.dark(
           primary: GameColors.neonCyan,
-          secondary: GameColors.pixelGreen,
-          surface: GameColors.darkBg,
+          secondary: GameColors.neonGreen,
+          surface: Color(0xFF080818),
         ),
       ),
       home: const AppNavigator(),
@@ -50,7 +51,7 @@ class RunnerApp extends StatelessWidget {
   }
 }
 
-enum AppScreen { menu, game, settings, info }
+enum AppScreen { menu, game, levelSelect, settings, info }
 
 class AppNavigator extends StatefulWidget {
   const AppNavigator({super.key});
@@ -62,6 +63,7 @@ class AppNavigator extends StatefulWidget {
 class _AppNavigatorState extends State<AppNavigator> {
   AppScreen _currentScreen = AppScreen.menu;
   int _highScore = 0;
+  int _startLevel = 0;
 
   @override
   void initState() {
@@ -71,13 +73,18 @@ class _AppNavigatorState extends State<AppNavigator> {
 
   Future<void> _loadHighScore() async {
     final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _highScore = prefs.getInt('highScore') ?? 0;
-    });
+    if (mounted) {
+      setState(() {
+        _highScore = prefs.getInt('highScore') ?? 0;
+      });
+    }
   }
 
-  void _navigateTo(AppScreen screen) {
-    setState(() => _currentScreen = screen);
+  void _navigateTo(AppScreen screen, {int startLevel = 0}) {
+    setState(() {
+      _currentScreen = screen;
+      _startLevel = startLevel;
+    });
     if (screen == AppScreen.menu) _loadHighScore();
   }
 
@@ -96,14 +103,21 @@ class _AppNavigatorState extends State<AppNavigator> {
       case AppScreen.menu:
         return MainMenuScreen(
           key: const ValueKey('menu'),
-          onPlay: () => _navigateTo(AppScreen.game),
+          onPlay: () => _navigateTo(AppScreen.levelSelect),
           onSettings: () => _navigateTo(AppScreen.settings),
           onInfo: () => _navigateTo(AppScreen.info),
           highScore: _highScore,
         );
+      case AppScreen.levelSelect:
+        return LevelSelectScreen(
+          key: const ValueKey('levelSelect'),
+          onBack: () => _navigateTo(AppScreen.menu),
+          onSelectLevel: (idx) => _navigateTo(AppScreen.game, startLevel: idx),
+        );
       case AppScreen.game:
         return GameScreen(
           key: UniqueKey(),
+          startLevel: _startLevel,
           onMainMenu: () => _navigateTo(AppScreen.menu),
         );
       case AppScreen.settings:

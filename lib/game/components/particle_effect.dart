@@ -1,86 +1,108 @@
-import 'dart:math';
 import 'dart:ui';
+import 'dart:math' as math;
 import 'package:flame/components.dart';
+import 'package:runner/game/platformer_game.dart';
 import 'package:runner/game/utils/constants.dart';
 
-class Particle {
-  double x, y;
-  double vx, vy;
-  double life;
-  double maxLife;
-  Color color;
-  double size;
+class ParticleEffect extends PositionComponent
+    with HasGameReference<PlatformerGame> {
+  final List<_Particle> _particles = [];
 
-  Particle({
-    required this.x,
-    required this.y,
-    required this.vx,
-    required this.vy,
-    required this.life,
-    required this.color,
-    required this.size,
-  }) : maxLife = life;
-}
-
-class ParticleEffect extends PositionComponent {
-  final List<Particle> particles = [];
-  final Random _random = Random();
+  @override
+  Future<void> onLoad() async {
+    size = game.size;
+    position = Vector2.zero();
+    priority = 20;
+  }
 
   void spawnExplosion(double x, double y) {
-    for (int i = 0; i < 24; i++) {
-      final angle = _random.nextDouble() * 2 * pi;
-      final speed = 100 + _random.nextDouble() * 220;
-      final colors = [
-        GameColors.obstacleTall,
-        GameColors.obstacleLow,
-        GameColors.pixelYellow,
-        const Color(0xFFFFFFFF),
-      ];
-      particles.add(
-        Particle(
+    final rng = math.Random();
+    for (int i = 0; i < 14; i++) {
+      final angle = rng.nextDouble() * math.pi * 2;
+      final speed = 80 + rng.nextDouble() * 180;
+      _particles.add(
+        _Particle(
           x: x,
           y: y,
-          vx: cos(angle) * speed,
-          vy: sin(angle) * speed,
-          life: 0.4 + _random.nextDouble() * 0.5,
-          color: colors[_random.nextInt(colors.length)],
-          size: 4 + _random.nextDouble() * 5,
+          vx: math.cos(angle) * speed,
+          vy: math.sin(angle) * speed - 60,
+          color: [
+            GameColors.fireOrb,
+            const Color(0xFFFF8800),
+            const Color(0xFFFFFF00),
+          ][rng.nextInt(3)],
+          radius: 3 + rng.nextDouble() * 4,
+          life: 0.5 + rng.nextDouble() * 0.4,
         ),
       );
     }
   }
 
   void spawnCoinCollect(double x, double y) {
-    for (int i = 0; i < 10; i++) {
-      final angle = _random.nextDouble() * 2 * pi;
-      final speed = 60 + _random.nextDouble() * 130;
-      particles.add(
-        Particle(
+    final rng = math.Random();
+    for (int i = 0; i < 6; i++) {
+      final angle = -math.pi / 2 + (rng.nextDouble() - 0.5) * math.pi;
+      _particles.add(
+        _Particle(
           x: x,
           y: y,
-          vx: cos(angle) * speed,
-          vy: sin(angle) * speed - 60,
-          life: 0.25 + _random.nextDouble() * 0.35,
-          color: _random.nextBool() ? GameColors.coin : GameColors.coinDark,
-          size: 3 + _random.nextDouble() * 4,
+          vx: math.cos(angle) * 60,
+          vy: math.sin(angle) * 60 - 80,
+          color: GameColors.coin,
+          radius: 3,
+          life: 0.4,
         ),
       );
     }
   }
 
   void spawnPowerUpCollect(double x, double y, Color color) {
-    for (int i = 0; i < 14; i++) {
-      final angle = _random.nextDouble() * 2 * pi;
-      final speed = 80 + _random.nextDouble() * 170;
-      particles.add(
-        Particle(
+    final rng = math.Random();
+    for (int i = 0; i < 10; i++) {
+      final angle = rng.nextDouble() * math.pi * 2;
+      _particles.add(
+        _Particle(
           x: x,
           y: y,
-          vx: cos(angle) * speed,
-          vy: sin(angle) * speed - 50,
-          life: 0.28 + _random.nextDouble() * 0.45,
+          vx: math.cos(angle) * 120,
+          vy: math.sin(angle) * 120 - 40,
           color: color,
-          size: 3 + _random.nextDouble() * 4,
+          radius: 4,
+          life: 0.6 + rng.nextDouble() * 0.3,
+          gravity: true,
+        ),
+      );
+    }
+  }
+
+  void spawnStarTrail(double x, double y, Color color) {
+    _particles.add(
+      _Particle(
+        x: x,
+        y: y,
+        vx: -20,
+        vy: -10,
+        color: color.withAlpha(200),
+        radius: 5,
+        life: 0.25,
+      ),
+    );
+  }
+
+  void spawnTeleport(double x, double y) {
+    final rng = math.Random();
+    for (int i = 0; i < 18; i++) {
+      final angle = rng.nextDouble() * math.pi * 2;
+      final speed = 40 + rng.nextDouble() * 100;
+      _particles.add(
+        _Particle(
+          x: x,
+          y: y,
+          vx: math.cos(angle) * speed,
+          vy: math.sin(angle) * speed,
+          color: GameColors.teleportOrb,
+          radius: 3 + rng.nextDouble() * 3,
+          life: 0.4 + rng.nextDouble() * 0.3,
         ),
       );
     }
@@ -89,28 +111,52 @@ class ParticleEffect extends PositionComponent {
   @override
   void update(double dt) {
     super.update(dt);
-    for (final p in particles) {
-      p.x += p.vx * dt;
-      p.y += p.vy * dt;
-      p.vy += 240 * dt;
-      p.life -= dt;
-      p.size = (p.size * 0.97).clamp(1, 20);
+    for (final p in _particles) {
+      p.update(dt);
     }
-    particles.removeWhere((p) => p.life <= 0);
+    _particles.removeWhere((p) => p.isDead);
   }
 
   @override
   void render(Canvas canvas) {
-    for (final p in particles) {
-      final alpha = (p.life / p.maxLife).clamp(0.0, 1.0);
-      canvas.drawRect(
-        Rect.fromCenter(
-          center: Offset(p.x, p.y),
-          width: p.size,
-          height: p.size,
-        ),
-        Paint()..color = p.color.withValues(alpha: alpha),
+    for (final p in _particles) {
+      canvas.drawCircle(
+        Offset(p.x, p.y),
+        p.radius * p.lifeFraction,
+        Paint()..color = p.color.withAlpha((p.lifeFraction * 255).toInt()),
       );
     }
   }
+}
+
+class _Particle {
+  double x, y, vx, vy;
+  Color color;
+  double radius;
+  double life;
+  double elapsed = 0;
+  bool gravity;
+
+  _Particle({
+    required this.x,
+    required this.y,
+    required this.vx,
+    required this.vy,
+    required this.color,
+    required this.radius,
+    required this.life,
+    this.gravity = false,
+  });
+
+  void update(double dt) {
+    elapsed += dt;
+    x += vx * dt;
+    y += vy * dt;
+    if (gravity) vy += 400 * dt;
+    vx *= 0.95;
+    vy *= 0.95;
+  }
+
+  bool get isDead => elapsed >= life;
+  double get lifeFraction => (1 - elapsed / life).clamp(0.0, 1.0);
 }

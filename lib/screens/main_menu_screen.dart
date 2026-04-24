@@ -151,7 +151,7 @@ class _MainMenuScreenState extends State<MainMenuScreen>
                       const SizedBox(height: 6),
 
                       Text(
-                        'DODGE · JUMP · SURVIVE',
+                        'JUMP · STOMP · BLAST',
                         style: GoogleFonts.pressStart2p(
                           fontSize: 6,
                           color: const Color(0xFF88aadd),
@@ -304,19 +304,19 @@ class _MainMenuScreenState extends State<MainMenuScreen>
                   ),
                 ),
                 Text(
-                  'RUNNER',
+                  'JUMPER',
                   style: GoogleFonts.pressStart2p(
                     fontSize: 22,
-                    color: const Color(0xFFFFEE00),
+                    color: const Color(0xFF22FF88),
                     height: 1.2,
                     shadows: const [
                       Shadow(
-                        color: Color(0xFF886600),
+                        color: Color(0xFF006633),
                         offset: Offset(3, 3),
                         blurRadius: 0,
                       ),
                       Shadow(
-                        color: Color(0x44FFEE00),
+                        color: Color(0x4422FF88),
                         offset: Offset(0, 0),
                         blurRadius: 12,
                       ),
@@ -370,11 +370,13 @@ class _MainMenuScreenState extends State<MainMenuScreen>
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  _controlChip('⬆⬇', 'LANES'),
+                  _controlChip('SPACE', 'JUMP'),
                   const SizedBox(width: 6),
-                  _controlChip('SP', 'JUMP'),
+                  _controlChip('[F]', 'FIRE'),
                   const SizedBox(width: 6),
-                  _controlChip('↕swipe', 'TOUCH'),
+                  _controlChip('[T]', 'TELE'),
+                  const SizedBox(width: 6),
+                  _controlChip('TAP', 'TOUCH'),
                 ],
               ),
             ],
