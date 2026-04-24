@@ -10,9 +10,7 @@ class CoinManager extends Component with HasGameReference<RunnerGame> {
   double _timeSinceLastSpawn = 0;
   double _coinSpawnInterval = 2.0;
 
-  void reset() {
-    _timeSinceLastSpawn = 0;
-  }
+  void reset() => _timeSinceLastSpawn = 0;
 
   @override
   void update(double dt) {
@@ -37,18 +35,18 @@ class CoinManager extends Component with HasGameReference<RunnerGame> {
 
   Set<int> _getOccupiedLanes() {
     final occupied = <int>{};
-    final screenWidth = game.size.x;
-    final roadLeft = (screenWidth - GameConfig.roadWidth) / 2;
-    final laneSpacing = GameConfig.roadWidth / GameConfig.laneCount;
+    final sw = game.size.x;
+    final roadTop = game.road.roadTop;
+    final lh = GameConfig.laneHeight;
 
     for (final obstacle in game.children.whereType<Obstacle>()) {
-      if (obstacle.position.y < 300) {
-        final obsLeftX = obstacle.position.x;
-        final obsRightX = obstacle.position.x + obstacle.size.x;
+      if (obstacle.position.x > sw * 0.5) {
+        final obsTop = obstacle.position.y;
+        final obsBottom = obsTop + obstacle.size.y;
         for (int lane = 0; lane < GameConfig.laneCount; lane++) {
-          final laneLeft = roadLeft + laneSpacing * lane;
-          final laneRight = laneLeft + laneSpacing;
-          if (obsLeftX < laneRight && obsRightX > laneLeft) {
+          final laneTop = roadTop + lane * lh;
+          final laneBottom = laneTop + lh;
+          if (obsTop < laneBottom && obsBottom > laneTop) {
             occupied.add(lane);
           }
         }
@@ -78,7 +76,8 @@ class CoinManager extends Component with HasGameReference<RunnerGame> {
         final lane = available[_random.nextInt(available.length)];
         for (int i = 0; i < 3; i++) {
           final coin = Coin(lane: lane);
-          coin.position.y = -(i * 48.0 + Coin.coinSize);
+
+          coin.position.x = game.size.x + Coin.coinSize + i * 48.0;
           game.add(coin);
         }
         break;
@@ -92,7 +91,7 @@ class CoinManager extends Component with HasGameReference<RunnerGame> {
       case 3:
         for (int i = 0; i < available.length; i++) {
           final coin = Coin(lane: available[i]);
-          coin.position.y = -(i * 40.0 + Coin.coinSize);
+          coin.position.x = game.size.x + Coin.coinSize + i * 40.0;
           game.add(coin);
         }
         break;

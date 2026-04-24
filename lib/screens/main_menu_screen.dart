@@ -114,80 +114,90 @@ class _MainMenuScreenState extends State<MainMenuScreen>
           ),
 
           SafeArea(
-            child: Column(
+            child: Row(
               children: [
-                const SizedBox(height: 24),
+                Expanded(
+                  flex: 5,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      if (widget.highScore > 0) ...[
+                        _buildHighScoreBadge(),
+                        const SizedBox(height: 12),
+                      ],
 
-                if (widget.highScore > 0) _buildHighScoreBadge(),
-
-                const Spacer(flex: 1),
-
-                AnimatedBuilder(
-                  animation: _float,
-                  builder: (ctx, _) => Transform.translate(
-                    offset: Offset(0, _float.value),
-                    child: AnimatedBuilder(
-                      animation: _pulse,
-                      builder: (ctx, _) => Transform.scale(
-                        scale: _pulse.value,
-                        child: SizedBox(
-                          width: 72,
-                          height: 96,
-                          child: CustomPaint(painter: _HeroPainter()),
+                      AnimatedBuilder(
+                        animation: _float,
+                        builder: (ctx, _) => Transform.translate(
+                          offset: Offset(0, _float.value),
+                          child: AnimatedBuilder(
+                            animation: _pulse,
+                            builder: (ctx, _) => Transform.scale(
+                              scale: _pulse.value,
+                              child: SizedBox(
+                                width: 56,
+                                height: 72,
+                                child: CustomPaint(painter: _HeroPainter()),
+                              ),
+                            ),
+                          ),
                         ),
                       ),
-                    ),
+
+                      const SizedBox(height: 12),
+
+                      _buildTitle(),
+
+                      const SizedBox(height: 6),
+
+                      Text(
+                        'DODGE · JUMP · SURVIVE',
+                        style: GoogleFonts.pressStart2p(
+                          fontSize: 6,
+                          color: const Color(0xFF88aadd),
+                          letterSpacing: 2,
+                        ),
+                      ),
+
+                      const SizedBox(height: 16),
+                      _buildControlsHint(),
+                    ],
                   ),
                 ),
 
-                const SizedBox(height: 20),
+                Expanded(
+                  flex: 4,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _buildPlayButton(),
 
-                _buildTitle(),
+                      const SizedBox(height: 10),
 
-                const SizedBox(height: 8),
+                      NeonButton(
+                        text: 'SETTINGS',
+                        onPressed: widget.onSettings,
+                        color: const Color(0xFF5566aa),
+                        width: 190,
+                        height: 44,
+                        fontSize: 9,
+                        icon: Icons.settings_rounded,
+                      ),
 
-                Text(
-                  'SWIPE · JUMP · SURVIVE',
-                  style: GoogleFonts.pressStart2p(
-                    fontSize: 7,
-                    color: const Color(0xFF88aadd),
-                    letterSpacing: 2,
+                      const SizedBox(height: 8),
+
+                      NeonButton(
+                        text: 'INFO',
+                        onPressed: widget.onInfo,
+                        color: const Color(0xFF9c27b0),
+                        width: 190,
+                        height: 40,
+                        fontSize: 8,
+                        icon: Icons.info_outline_rounded,
+                      ),
+                    ],
                   ),
                 ),
-
-                const Spacer(flex: 2),
-
-                _buildPlayButton(),
-
-                const SizedBox(height: 14),
-
-                NeonButton(
-                  text: 'SETTINGS',
-                  onPressed: widget.onSettings,
-                  color: const Color(0xFF5566aa),
-                  width: 220,
-                  height: 48,
-                  fontSize: 10,
-                  icon: Icons.settings_rounded,
-                ),
-
-                const SizedBox(height: 10),
-
-                NeonButton(
-                  text: 'INFO',
-                  onPressed: widget.onInfo,
-                  color: const Color(0xFF9c27b0),
-                  width: 220,
-                  height: 44,
-                  fontSize: 9,
-                  icon: Icons.info_outline_rounded,
-                ),
-
-                const Spacer(flex: 1),
-
-                _buildControlsHint(),
-
-                const SizedBox(height: 20),
               ],
             ),
           ),
@@ -243,7 +253,7 @@ class _MainMenuScreenState extends State<MainMenuScreen>
       builder: (ctx, _) => Column(
         children: [
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
                 begin: Alignment.topLeft,
@@ -276,7 +286,7 @@ class _MainMenuScreenState extends State<MainMenuScreen>
                 Text(
                   'PIXEL',
                   style: GoogleFonts.pressStart2p(
-                    fontSize: 32,
+                    fontSize: 22,
                     color: const Color(0xFF00EEFF),
                     height: 1.2,
                     shadows: const [
@@ -296,7 +306,7 @@ class _MainMenuScreenState extends State<MainMenuScreen>
                 Text(
                   'RUNNER',
                   style: GoogleFonts.pressStart2p(
-                    fontSize: 32,
+                    fontSize: 22,
                     color: const Color(0xFFFFEE00),
                     height: 1.2,
                     shadows: const [
@@ -330,9 +340,9 @@ class _MainMenuScreenState extends State<MainMenuScreen>
           text: 'PLAY',
           onPressed: widget.onPlay,
           color: const Color(0xFF22cc55),
-          width: 260,
-          height: 68,
-          fontSize: 20,
+          width: 190,
+          height: 54,
+          fontSize: 16,
           icon: Icons.play_arrow_rounded,
         ),
       ),
@@ -345,15 +355,28 @@ class _MainMenuScreenState extends State<MainMenuScreen>
       builder: (ctx, _) => Opacity(
         opacity: 0.5 + _shimmerCtrl.value * 0.5,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: Column(
             children: [
-              _controlChip('⬅', 'SWIPE LEFT'),
-              const SizedBox(width: 10),
-              _controlChip('⬆', 'TAP TOP'),
-              const SizedBox(width: 10),
-              _controlChip('➡', 'SWIPE RIGHT'),
+              Text(
+                'CONTROLS',
+                style: GoogleFonts.pressStart2p(
+                  fontSize: 5,
+                  color: const Color(0xFF556688),
+                  letterSpacing: 2,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _controlChip('⬆⬇', 'LANES'),
+                  const SizedBox(width: 6),
+                  _controlChip('SP', 'JUMP'),
+                  const SizedBox(width: 6),
+                  _controlChip('↕swipe', 'TOUCH'),
+                ],
+              ),
             ],
           ),
         ),
@@ -513,27 +536,25 @@ class _MenuBgPainter extends CustomPainter {
       Paint()..color = const Color(0xFF1a3a24),
     );
 
+    const laneH = 28.0;
+    final roadTop = groundY + 8;
     canvas.drawRect(
-      Rect.fromLTWH(
-        size.width * 0.2,
-        groundY + 5,
-        size.width * 0.6,
-        size.height - groundY - 5,
-      ),
+      Rect.fromLTWH(0, roadTop, size.width, laneH * 3),
       Paint()..color = const Color(0xFF1a1a1a),
     );
 
     final lp = Paint()
-      ..color = const Color(0x88FFFFFF)
-      ..strokeWidth = 2;
+      ..color = const Color(0x55FFFFFF)
+      ..strokeWidth = 1;
+
     canvas.drawLine(
-      Offset(size.width * 0.4, groundY + 10),
-      Offset(size.width * 0.4, size.height),
+      Offset(0, roadTop + laneH),
+      Offset(size.width, roadTop + laneH),
       lp,
     );
     canvas.drawLine(
-      Offset(size.width * 0.6, groundY + 10),
-      Offset(size.width * 0.6, size.height),
+      Offset(0, roadTop + laneH * 2),
+      Offset(size.width, roadTop + laneH * 2),
       lp,
     );
   }

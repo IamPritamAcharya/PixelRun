@@ -49,42 +49,28 @@ class ObstacleManager extends Component with HasGameReference<RunnerGame> {
 
     if (pattern < 4) {
       final lane = _random.nextInt(GameConfig.laneCount);
-      final type = _randomObstacleType();
-      game.add(Obstacle(type: type, lane: lane));
+      game.add(Obstacle(type: _randomSingleType(), lane: lane));
     } else if (pattern < 7) {
       final freeLane = _random.nextInt(GameConfig.laneCount);
       for (int i = 0; i < GameConfig.laneCount; i++) {
         if (i != freeLane) {
-          game.add(
-            Obstacle(
-              type: _random.nextBool()
-                  ? ObstacleType.tall
-                  : (_random.nextBool()
-                        ? ObstacleType.low
-                        : ObstacleType.puddle),
-              lane: i,
-            ),
-          );
+          game.add(Obstacle(type: _randomSingleType(), lane: i));
         }
       }
     } else if (pattern < 9) {
       final lane = _random.nextInt(GameConfig.laneCount);
-      game.add(
-        Obstacle(
-          type: _random.nextBool() ? ObstacleType.low : ObstacleType.puddle,
-          lane: lane,
-        ),
-      );
+      final type = _random.nextBool() ? ObstacleType.low : ObstacleType.puddle;
+      game.add(Obstacle(type: type, lane: lane));
     } else {
       final lane = _random.nextInt(GameConfig.laneCount - 1);
       game.add(Obstacle(type: ObstacleType.wide, lane: lane));
     }
   }
 
-  ObstacleType _randomObstacleType() {
+  ObstacleType _randomSingleType() {
     final roll = _random.nextInt(10);
     if (roll < 5) return ObstacleType.tall;
-    if (roll < 9) return ObstacleType.low;
-    return ObstacleType.wide;
+    if (roll < 8) return ObstacleType.low;
+    return ObstacleType.puddle;
   }
 }

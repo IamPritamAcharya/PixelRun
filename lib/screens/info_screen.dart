@@ -65,145 +65,152 @@ class InfoScreen extends StatelessWidget {
               ),
               const SizedBox(height: 10),
               Expanded(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Column(
-                    children: [
-                      GlassCard(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Row(
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 620),
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Column(
+                        children: [
+                          GlassCard(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Icon(
-                                  Icons.auto_awesome_rounded,
-                                  color: GameColors.neonCyan,
-                                  size: 22,
+                                const Row(
+                                  children: [
+                                    Icon(
+                                      Icons.auto_awesome_rounded,
+                                      color: GameColors.neonCyan,
+                                      size: 22,
+                                    ),
+                                    SizedBox(width: 10),
+                                    Text(
+                                      'POWER-UPS',
+                                      style: TextStyle(
+                                        fontFamily: 'Orbitron',
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: GameColors.neonCyan,
+                                        letterSpacing: 2,
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                SizedBox(width: 10),
-                                Text(
-                                  'POWER-UPS',
-                                  style: TextStyle(
-                                    fontFamily: 'Orbitron',
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: GameColors.neonCyan,
-                                    letterSpacing: 2,
-                                  ),
+                                const SizedBox(height: 16),
+                                _powerUpRow(
+                                  Icons.shield_rounded,
+                                  'Shield',
+                                  'Blocks one crash with an obstacle.',
+                                  GameColors.neonCyan,
+                                ),
+                                _powerUpRow(
+                                  Icons.all_inclusive_rounded,
+                                  'Magnet',
+                                  'Pulls nearby coins toward you.',
+                                  GameColors.neonPink,
+                                ),
+                                _powerUpRow(
+                                  Icons.diamond_rounded,
+                                  'Double Coins',
+                                  'Doubles coin value for a short burst.',
+                                  GameColors.pixelYellow,
+                                ),
+                                _powerUpRow(
+                                  Icons.flash_on_rounded,
+                                  'Boost',
+                                  'Temporarily increases running speed.',
+                                  GameColors.neonGreen,
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 16),
-                            _powerUpRow(
-                              Icons.shield_rounded,
-                              'Shield',
-                              'Blocks one crash with an obstacle.',
-                              GameColors.neonCyan,
-                            ),
-                            _powerUpRow(
-                              Icons.all_inclusive_rounded,
-                              'Magnet',
-                              'Pulls nearby coins toward you.',
-                              GameColors.neonPink,
-                            ),
-                            _powerUpRow(
-                              Icons.diamond_rounded,
-                              'Double Coins',
-                              'Doubles coin value for a short burst.',
-                              GameColors.pixelYellow,
-                            ),
-                            _powerUpRow(
-                              Icons.flash_on_rounded,
-                              'Boost',
-                              'Temporarily increases running speed.',
-                              GameColors.neonGreen,
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      GlassCard(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Row(
+                          ),
+                          const SizedBox(height: 20),
+                          GlassCard(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Icon(
-                                  Icons.videogame_asset_rounded,
-                                  color: GameColors.neonGreen,
-                                  size: 22,
+                                const Row(
+                                  children: [
+                                    Icon(
+                                      Icons.videogame_asset_rounded,
+                                      color: GameColors.neonGreen,
+                                      size: 22,
+                                    ),
+                                    SizedBox(width: 10),
+                                    Text(
+                                      'GAMEPLAY',
+                                      style: TextStyle(
+                                        fontFamily: 'Orbitron',
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: GameColors.neonGreen,
+                                        letterSpacing: 2,
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                SizedBox(width: 10),
-                                Text(
-                                  'GAMEPLAY',
-                                  style: TextStyle(
-                                    fontFamily: 'Orbitron',
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: GameColors.neonGreen,
-                                    letterSpacing: 2,
-                                  ),
+                                const SizedBox(height: 16),
+                                _bullet('Jump over low obstacles and puddles.'),
+                                _bullet('Swap lanes to dodge barriers.'),
+                                _bullet(
+                                  'Grab power-ups before they scroll away.',
+                                ),
+                                _bullet(
+                                  'All obstacles stay inside the road lanes.',
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 16),
-                            _bullet('Jump over low obstacles and puddles.'),
-                            _bullet('Swap lanes to dodge barriers.'),
-                            _bullet('Grab power-ups before they scroll away.'),
-                            _bullet(
-                              'All obstacles stay inside the road lanes.',
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      GlassCard(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Row(
+                          ),
+                          const SizedBox(height: 20),
+                          GlassCard(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Icon(
-                                  Icons.tips_and_updates_rounded,
-                                  color: GameColors.neonPink,
-                                  size: 22,
+                                const Row(
+                                  children: [
+                                    Icon(
+                                      Icons.tips_and_updates_rounded,
+                                      color: GameColors.neonPink,
+                                      size: 22,
+                                    ),
+                                    SizedBox(width: 10),
+                                    Text(
+                                      'CONTROLS',
+                                      style: TextStyle(
+                                        fontFamily: 'Orbitron',
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: GameColors.neonPink,
+                                        letterSpacing: 2,
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                SizedBox(width: 10),
-                                Text(
-                                  'CONTROLS',
-                                  style: TextStyle(
-                                    fontFamily: 'Orbitron',
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: GameColors.neonPink,
-                                    letterSpacing: 2,
-                                  ),
+                                const SizedBox(height: 16),
+                                _bullet(
+                                  'Swipe left / right or use arrow keys to change lanes.',
                                 ),
+                                _bullet(
+                                  'Swipe up, tap top, or press jump to hop forward.',
+                                ),
+                                _bullet('Pause with ESC or P.'),
                               ],
                             ),
-                            const SizedBox(height: 16),
-                            _bullet(
-                              'Swipe left / right or use arrow keys to change lanes.',
-                            ),
-                            _bullet(
-                              'Swipe up, tap top, or press jump to hop forward.',
-                            ),
-                            _bullet('Pause with ESC or P.'),
-                          ],
-                        ),
+                          ),
+                          const SizedBox(height: 24),
+                          NeonButton(
+                            text: 'BACK',
+                            onPressed: onBack,
+                            color: GameColors.neonCyan,
+                            width: double.infinity,
+                            height: 52,
+                            fontSize: 14,
+                            icon: Icons.home_rounded,
+                          ),
+                          const SizedBox(height: 28),
+                        ],
                       ),
-                      const SizedBox(height: 24),
-                      NeonButton(
-                        text: 'BACK',
-                        onPressed: onBack,
-                        color: GameColors.neonCyan,
-                        width: double.infinity,
-                        height: 52,
-                        fontSize: 14,
-                        icon: Icons.home_rounded,
-                      ),
-                      const SizedBox(height: 28),
-                    ],
+                    ),
                   ),
                 ),
               ),

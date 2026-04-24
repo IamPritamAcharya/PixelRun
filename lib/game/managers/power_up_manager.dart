@@ -37,18 +37,18 @@ class PowerUpManager extends Component with HasGameReference<RunnerGame> {
 
   Set<int> _getOccupiedLanes() {
     final occupied = <int>{};
-    final screenWidth = game.size.x;
-    final roadLeft = (screenWidth - GameConfig.roadWidth) / 2;
-    final laneSpacing = GameConfig.roadWidth / GameConfig.laneCount;
+    final sw = game.size.x;
+    final roadTop = game.road.roadTop;
+    final lh = GameConfig.laneHeight;
 
     for (final obstacle in game.children.whereType<Obstacle>()) {
-      if (obstacle.position.y < 280) {
-        final obsLeftX = obstacle.position.x;
-        final obsRightX = obstacle.position.x + obstacle.size.x;
+      if (obstacle.position.x > sw * 0.5) {
+        final obsTop = obstacle.position.y;
+        final obsBottom = obsTop + obstacle.size.y;
         for (int lane = 0; lane < GameConfig.laneCount; lane++) {
-          final laneLeft = roadLeft + laneSpacing * lane;
-          final laneRight = laneLeft + laneSpacing;
-          if (obsLeftX < laneRight && obsRightX > laneLeft) {
+          final laneTop = roadTop + lane * lh;
+          final laneBottom = laneTop + lh;
+          if (obsTop < laneBottom && obsBottom > laneTop) {
             occupied.add(lane);
           }
         }

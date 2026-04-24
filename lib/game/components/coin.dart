@@ -15,12 +15,10 @@ class Coin extends PositionComponent with HasGameReference<RunnerGame> {
 
   @override
   Future<void> onLoad() async {
-    final screenWidth = game.size.x;
-    final roadLeft = (screenWidth - GameConfig.roadWidth) / 2;
-    final laneSpacing = GameConfig.roadWidth / GameConfig.laneCount;
-    final laneCenter = roadLeft + laneSpacing * lane + laneSpacing / 2;
+    final laneCenter = game.road.laneCenterY(lane);
     size = Vector2(coinSize, coinSize);
-    position = Vector2(laneCenter - coinSize / 2, -coinSize);
+
+    position = Vector2(game.size.x + coinSize, laneCenter - coinSize / 2);
   }
 
   Rect get collisionRect =>
@@ -29,7 +27,8 @@ class Coin extends PositionComponent with HasGameReference<RunnerGame> {
   @override
   void update(double dt) {
     super.update(dt);
-    position.y += game.gameState.currentSpeed * dt;
+
+    position.x -= game.gameState.currentSpeed * dt;
     _animTimer += dt * 4;
 
     if (game.gameState.magnetActive) {
@@ -38,12 +37,13 @@ class Coin extends PositionComponent with HasGameReference<RunnerGame> {
       final dx = playerCenter.x - coinCenter.x;
       final dy = playerCenter.y - coinCenter.y;
       final distance = sqrt(dx * dx + dy * dy);
-      if (distance < 170) {
+      if (distance < 180) {
         position.x += dx * dt * 7;
+        position.y += dy * dt * 7;
       }
     }
 
-    if (position.y > game.size.y + 60) removeFromParent();
+    if (position.x + size.x < -60) removeFromParent();
   }
 
   @override
@@ -51,7 +51,6 @@ class Coin extends PositionComponent with HasGameReference<RunnerGame> {
     if (isCollected) return;
 
     final bob = sin(_animTimer) * 3.0;
-
     canvas.save();
     canvas.translate(0, bob);
 
@@ -73,6 +72,7 @@ class Coin extends PositionComponent with HasGameReference<RunnerGame> {
         ..style = PaintingStyle.stroke
         ..strokeWidth = 2,
     );
+
     canvas.drawRect(
       Rect.fromLTWH(c - 2, c - 6, 4, 12),
       Paint()..color = GameColors.coinDark,

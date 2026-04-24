@@ -18,12 +18,13 @@ class PowerUp extends PositionComponent with HasGameReference<RunnerGame> {
 
   @override
   Future<void> onLoad() async {
-    final screenWidth = game.size.x;
-    final roadLeft = (screenWidth - GameConfig.roadWidth) / 2;
-    final laneSpacing = GameConfig.roadWidth / GameConfig.laneCount;
-    final laneCenter = roadLeft + laneSpacing * lane + laneSpacing / 2;
+    final laneCenter = game.road.laneCenterY(lane);
     size = Vector2(powerUpSize, powerUpSize);
-    position = Vector2(laneCenter - powerUpSize / 2, -powerUpSize - 8);
+
+    position = Vector2(
+      game.size.x + powerUpSize + 8,
+      laneCenter - powerUpSize / 2,
+    );
   }
 
   Rect get collisionRect =>
@@ -45,11 +46,10 @@ class PowerUp extends PositionComponent with HasGameReference<RunnerGame> {
   @override
   void update(double dt) {
     super.update(dt);
-    position.y += game.gameState.currentSpeed * dt;
+
+    position.x -= game.gameState.currentSpeed * dt;
     _spinTimer += dt * 4;
-    if (position.y > game.size.y + 80) {
-      removeFromParent();
-    }
+    if (position.x + size.x < -80) removeFromParent();
   }
 
   @override
@@ -81,11 +81,6 @@ class PowerUp extends PositionComponent with HasGameReference<RunnerGame> {
 
     switch (type) {
       case PowerUpType.shield:
-        canvas.drawCircle(
-          Offset(c, c - 1),
-          c * 0.48,
-          Paint()..color = const Color(0x22000000),
-        );
         canvas.drawRect(
           Rect.fromLTWH(c - 3, c - 8, 6, 16),
           Paint()..color = const Color(0xFFFFFFFF),
@@ -144,7 +139,7 @@ class PowerUp extends PositionComponent with HasGameReference<RunnerGame> {
           ..lineTo(c + 1, c + 10)
           ..lineTo(c + 4, c + 2)
           ..lineTo(c - 6, c + 2)
-          ..lineTo(c + 1, c - 10);
+          ..close();
         canvas.drawPath(path, Paint()..color = const Color(0xFFFFFFFF));
         break;
     }

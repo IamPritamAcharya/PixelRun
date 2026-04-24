@@ -52,28 +52,36 @@ class GameColors {
 
 class GameConfig {
   static const int laneCount = 3;
-  static const double laneWidth = 80.0;
-  static const double roadWidth = laneWidth * laneCount + 40;
 
-  static const double playerWidth = 48.0;
-  static const double playerHeight = 64.0;
-  static const double playerBottomMargin = 120.0;
-  static const double laneSwitchDuration = 0.15;
+  static const double laneHeight = 52.0;
 
-  static const double jumpHeight = 260.0;
-  static const double jumpDuration = 0.60;
+  static double get roadHeight => laneCount * laneHeight;
 
-  static const double playerTopMargin = 84.0;
+  static const double playerWidth = 30.0;
+  static const double playerHeight = 38.0;
 
-  static const double obstacleMinWidth = 60.0;
-  static const double obstacleMaxWidth = 160.0;
-  static const double obstacleTallHeight = 82.0;
-  static const double obstacleLowHeight = 34.0;
-  static const double obstacleWideHeight = 50.0;
-  static const double obstacleWaterHeight = 24.0;
+  static const double playerXOffset = 86.0;
 
-  static const double initialSpeed = 260.0;
-  static const double maxSpeed = 800.0;
+  static const double playerGroundOffset = 6.0;
+
+  static const double jumpHeight = 150.0;
+  static const double jumpDuration = 0.58;
+
+  static const double laneSwitchDuration = 0.13;
+
+  static const double obstacleTallHeight = 44.0;
+  static const double obstacleTallWidth = 24.0;
+
+  static const double obstacleLowHeight = 18.0;
+  static const double obstacleLowWidth = 34.0;
+
+  static const double obstacleWideWidth = 24.0;
+
+  static const double obstacleWaterHeight = 14.0;
+  static const double obstacleWaterWidth = 42.0;
+
+  static const double initialSpeed = 280.0;
+  static const double maxSpeed = 820.0;
   static const double speedIncrement = 18.0;
   static const int speedIncreaseInterval = 400;
 
@@ -91,4 +99,6 @@ class GameConfig {
 
   static const int coinScore = 10;
   static const int distanceScoreRate = 1;
+
+  static const double roadTopFraction = 0.54;
 }

@@ -20,7 +20,7 @@ import 'package:runner/game/utils/constants.dart';
 import 'package:runner/game/utils/game_state.dart';
 
 class RunnerGame extends FlameGame
-    with HasCollisionDetection, KeyboardEvents, DragCallbacks {
+    with HasCollisionDetection, KeyboardEvents, DragCallbacks, TapCallbacks {
   late Player player;
   late Road road;
   late ObstacleManager obstacleManager;
@@ -42,7 +42,7 @@ class RunnerGame extends FlameGame
   int _lastSpeedLevel = 0;
 
   @override
-  Color backgroundColor() => const Color(0xFF080818);
+  Color backgroundColor() => const Color(0xFF7ec8ff);
 
   @override
   Future<void> onLoad() async {
@@ -77,21 +77,19 @@ class RunnerGame extends FlameGame
     gameState.resetForNewGame();
     obstacleManager.reset();
     coinManager.reset();
+    powerUpManager.reset();
+
     _lastSpeedLevel = 0;
     _scoreTimer = 0;
     _shakeTimer = 0;
     _shakeIntensity = 0;
     camera.viewfinder.position = Vector2.zero();
 
-    children.whereType<Obstacle>().toList().forEach((o) {
-      o.removeFromParent();
-    });
-    children.whereType<Coin>().toList().forEach((c) {
-      c.removeFromParent();
-    });
-    children.whereType<PowerUp>().toList().forEach((p) {
-      p.removeFromParent();
-    });
+    children.whereType<Obstacle>().toList().forEach(
+      (o) => o.removeFromParent(),
+    );
+    children.whereType<Coin>().toList().forEach((c) => c.removeFromParent());
+    children.whereType<PowerUp>().toList().forEach((p) => p.removeFromParent());
 
     player.currentLane = 1;
     player.targetLane = 1;
@@ -110,6 +108,12 @@ class RunnerGame extends FlameGame
     }
   }
 
+  void jump() {
+    if (gameState.playState == GamePlayState.playing) {
+      player.jump();
+    }
+  }
+
   void resumeGame() {
     if (gameState.playState == GamePlayState.paused) {
       gameState.playState = GamePlayState.playing;
@@ -117,6 +121,27 @@ class RunnerGame extends FlameGame
       resumeEngine();
       audioManager.resumeBackgroundMusic();
     }
+  }
+
+  void gameOver() {
+    gameState.playState = GamePlayState.gameOver;
+    gameState.saveHighScore();
+    audioManager.playCrash();
+
+    _shakeTimer = 0.5;
+    _shakeIntensity = 12;
+
+    particleEffect.spawnExplosion(
+      player.position.x + player.size.x / 2,
+      player.position.y + player.size.y / 2,
+    );
+
+    Future.delayed(const Duration(milliseconds: 700), () {
+      if (gameState.playState == GamePlayState.gameOver) {
+        pauseEngine();
+        overlays.add('GameOver');
+      }
+    });
   }
 
   void activatePowerUp(PowerUpType type) {
@@ -153,27 +178,6 @@ class RunnerGame extends FlameGame
       case PowerUpType.boost:
         return GameColors.boost;
     }
-  }
-
-  void gameOver() {
-    gameState.playState = GamePlayState.gameOver;
-    gameState.saveHighScore();
-    audioManager.playCrash();
-
-    _shakeTimer = 0.5;
-    _shakeIntensity = 12;
-
-    particleEffect.spawnExplosion(
-      player.position.x + player.size.x / 2,
-      player.position.y + player.size.y / 2,
-    );
-
-    Future.delayed(const Duration(milliseconds: 700), () {
-      if (gameState.playState == GamePlayState.gameOver) {
-        pauseEngine();
-        overlays.add('GameOver');
-      }
-    });
   }
 
   @override
@@ -245,16 +249,13 @@ class RunnerGame extends FlameGame
         if (gameState.shieldActive) {
           gameState.shieldTimeRemaining = 0;
           obstacle.removeFromParent();
-
           particleEffect.spawnExplosion(
             obstacle.position.x + obstacle.size.x / 2,
             obstacle.position.y + obstacle.size.y / 2,
           );
-
           player.triggerInvincibilityFlash();
           continue;
         }
-
         gameOver();
         return;
       }
@@ -262,22 +263,16 @@ class RunnerGame extends FlameGame
 
     for (final coin in children.whereType<Coin>().toList()) {
       final attracted = gameState.magnetActive && _coinNearPlayer(coin);
-
       if (!coin.isCollected && (attracted || _isColliding(player, coin))) {
         coin.isCollected = true;
-
-        final coinPoints = (GameConfig.coinScore * gameState.coinMultiplier)
-            .round();
-        gameState.score += coinPoints;
+        final pts = (GameConfig.coinScore * gameState.coinMultiplier).round();
+        gameState.score += pts;
         gameState.coins++;
-
         audioManager.playCoinCollect();
-
         particleEffect.spawnCoinCollect(
           coin.position.x + coin.size.x / 2,
           coin.position.y + coin.size.y / 2,
         );
-
         coin.removeFromParent();
       }
     }
@@ -286,33 +281,29 @@ class RunnerGame extends FlameGame
   bool _coinNearPlayer(Coin coin) {
     final pc = player.position + player.size / 2;
     final cc = coin.position + coin.size / 2;
-    final dx = (pc.x - cc.x).abs();
-    final dy = (pc.y - cc.y).abs();
-    return dx < 110 && dy < 160;
+    return (pc.x - cc.x).abs() < 160 && (pc.y - cc.y).abs() < 120;
   }
 
   bool _isColliding(PositionComponent a, PositionComponent b) {
     if (a is Player && b is Obstacle && a.isAirborneSafe) {
-      return false;
+      if (b.type == ObstacleType.low || b.type == ObstacleType.puddle) {
+        return false;
+      }
     }
-
-    final aRect = _rectForComponent(a);
-    final bRect = _rectForComponent(b);
-    return aRect.overlaps(bRect);
+    return _rectForComponent(a).overlaps(_rectForComponent(b));
   }
 
   Rect _rectForComponent(PositionComponent c) {
     if (c is Player) {
       const shrinkX = 10.0;
-      const shrinkTopBottom = 8.0;
+      const shrinkY = 8.0;
       return Rect.fromLTWH(
         c.position.x + shrinkX,
-        c.position.y + shrinkTopBottom,
-        c.size.x - (shrinkX * 2),
-        c.size.y - shrinkTopBottom * 2,
+        c.position.y + shrinkY,
+        c.size.x - shrinkX * 2,
+        c.size.y - shrinkY * 2,
       );
     }
-
     if (c is Coin) {
       return Rect.fromLTWH(
         c.position.x + 6,
@@ -321,11 +312,15 @@ class RunnerGame extends FlameGame
         c.size.y - 12,
       );
     }
-
-    if (c is Obstacle) {
-      return c.collisionRect;
+    if (c is Obstacle) return c.collisionRect;
+    if (c is PowerUp) {
+      return Rect.fromLTWH(
+        c.position.x + 5,
+        c.position.y + 5,
+        c.size.x - 10,
+        c.size.y - 10,
+      );
     }
-
     return Rect.fromLTWH(
       c.position.x + 6,
       c.position.y + 4,
@@ -340,28 +335,21 @@ class RunnerGame extends FlameGame
     Set<LogicalKeyboardKey> keysPressed,
   ) {
     if (event is KeyDownEvent && gameState.playState == GamePlayState.playing) {
-      if (event.logicalKey == LogicalKeyboardKey.arrowLeft ||
-          event.logicalKey == LogicalKeyboardKey.keyA) {
-        player.moveLeft();
-        return KeyEventResult.handled;
-      }
-
-      if (event.logicalKey == LogicalKeyboardKey.arrowRight ||
-          event.logicalKey == LogicalKeyboardKey.keyD) {
-        player.moveRight();
-        return KeyEventResult.handled;
-      }
-
       if (event.logicalKey == LogicalKeyboardKey.arrowUp ||
-          event.logicalKey == LogicalKeyboardKey.space ||
           event.logicalKey == LogicalKeyboardKey.keyW) {
-        player.jump();
+        player.moveUp();
         return KeyEventResult.handled;
       }
 
       if (event.logicalKey == LogicalKeyboardKey.arrowDown ||
           event.logicalKey == LogicalKeyboardKey.keyS) {
-        player.jumpBackward();
+        player.moveDown();
+        return KeyEventResult.handled;
+      }
+
+      if (event.logicalKey == LogicalKeyboardKey.space ||
+          event.logicalKey == LogicalKeyboardKey.enter) {
+        jump();
         return KeyEventResult.handled;
       }
 
@@ -396,20 +384,24 @@ class RunnerGame extends FlameGame
     final delta = current - _dragStart!;
 
     if (delta.length > _swipeThreshold) {
-      if (delta.x.abs() > delta.y.abs()) {
-        if (delta.x > 0) {
-          player.moveRight();
-        } else {
-          player.moveLeft();
-        }
-      } else {
+      if (delta.y.abs() >= delta.x.abs()) {
         if (delta.y < 0) {
-          player.jump();
+          player.moveUp();
         } else {
-          player.jumpBackward();
+          player.moveDown();
         }
       }
+
       _dragStart = current;
+    }
+  }
+
+  @override
+  void onTapDown(TapDownEvent event) {
+    if (gameState.playState == GamePlayState.playing) {
+      if (event.localPosition.y < size.y * 0.45) {
+        jump();
+      }
     }
   }
 }

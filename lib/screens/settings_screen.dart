@@ -131,195 +131,200 @@ class _SettingsScreenState extends State<SettingsScreen> {
               const SizedBox(height: 20),
 
               Expanded(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Column(
-                    children: [
-                      GlassCard(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 600),
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Column(
+                        children: [
+                          GlassCard(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Icon(
-                                  Icons.headphones_rounded,
-                                  color: GameColors.neonCyan,
-                                  size: 22,
-                                ),
-                                const SizedBox(width: 10),
-                                const Text(
-                                  'AUDIO',
-                                  style: TextStyle(
-                                    fontFamily: 'Orbitron',
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: GameColors.neonCyan,
-                                    letterSpacing: 2,
-                                  ),
-                                ),
-                                const Spacer(),
-
-                                GestureDetector(
-                                  onTap: () {
-                                    setState(() {
-                                      _isMuted = !_isMuted;
-                                    });
-                                    _saveSettings();
-                                  },
-                                  child: Container(
-                                    padding: const EdgeInsets.all(8),
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(10),
-                                      border: Border.all(
-                                        color: _isMuted
-                                            ? GameColors.neonPink.withValues(
-                                                alpha: 0.5,
-                                              )
-                                            : GameColors.neonGreen.withValues(
-                                                alpha: 0.5,
-                                              ),
+                                Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.headphones_rounded,
+                                      color: GameColors.neonCyan,
+                                      size: 22,
+                                    ),
+                                    const SizedBox(width: 10),
+                                    const Text(
+                                      'AUDIO',
+                                      style: TextStyle(
+                                        fontFamily: 'Orbitron',
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: GameColors.neonCyan,
+                                        letterSpacing: 2,
                                       ),
-                                      color: _isMuted
-                                          ? GameColors.neonPink.withValues(
-                                              alpha: 0.1,
-                                            )
-                                          : GameColors.neonGreen.withValues(
-                                              alpha: 0.1,
-                                            ),
                                     ),
-                                    child: Icon(
-                                      _isMuted
-                                          ? Icons.volume_off_rounded
-                                          : Icons.volume_up_rounded,
-                                      color: _isMuted
-                                          ? GameColors.neonPink
-                                          : GameColors.neonGreen,
-                                      size: 20,
+                                    const Spacer(),
+
+                                    GestureDetector(
+                                      onTap: () {
+                                        setState(() {
+                                          _isMuted = !_isMuted;
+                                        });
+                                        _saveSettings();
+                                      },
+                                      child: Container(
+                                        padding: const EdgeInsets.all(8),
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(
+                                            10,
+                                          ),
+                                          border: Border.all(
+                                            color: _isMuted
+                                                ? GameColors.neonPink
+                                                      .withValues(alpha: 0.5)
+                                                : GameColors.neonGreen
+                                                      .withValues(alpha: 0.5),
+                                          ),
+                                          color: _isMuted
+                                              ? GameColors.neonPink.withValues(
+                                                  alpha: 0.1,
+                                                )
+                                              : GameColors.neonGreen.withValues(
+                                                  alpha: 0.1,
+                                                ),
+                                        ),
+                                        child: Icon(
+                                          _isMuted
+                                              ? Icons.volume_off_rounded
+                                              : Icons.volume_up_rounded,
+                                          color: _isMuted
+                                              ? GameColors.neonPink
+                                              : GameColors.neonGreen,
+                                          size: 20,
+                                        ),
+                                      ),
                                     ),
-                                  ),
+                                  ],
                                 ),
-                              ],
-                            ),
 
-                            const SizedBox(height: 24),
+                                const SizedBox(height: 24),
 
-                            _buildSlider(
-                              label: 'Music',
-                              icon: Icons.music_note_rounded,
-                              value: _musicVolume,
-                              color: GameColors.neonPurple,
-                              onChanged: _isMuted
-                                  ? null
-                                  : (value) {
-                                      setState(() => _musicVolume = value);
-                                      _saveSettings();
-                                    },
-                            ),
-
-                            const SizedBox(height: 20),
-
-                            _buildSlider(
-                              label: 'SFX',
-                              icon: Icons.surround_sound_rounded,
-                              value: _sfxVolume,
-                              color: GameColors.neonGreen,
-                              onChanged: _isMuted
-                                  ? null
-                                  : (value) {
-                                      setState(() => _sfxVolume = value);
-                                      _saveSettings();
-                                    },
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      const SizedBox(height: 20),
-
-                      GlassCard(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Row(
-                              children: [
-                                Icon(
-                                  Icons.storage_rounded,
-                                  color: GameColors.neonPink,
-                                  size: 22,
+                                _buildSlider(
+                                  label: 'Music',
+                                  icon: Icons.music_note_rounded,
+                                  value: _musicVolume,
+                                  color: GameColors.neonPurple,
+                                  onChanged: _isMuted
+                                      ? null
+                                      : (value) {
+                                          setState(() => _musicVolume = value);
+                                          _saveSettings();
+                                        },
                                 ),
-                                SizedBox(width: 10),
-                                Text(
-                                  'DATA',
-                                  style: TextStyle(
-                                    fontFamily: 'Orbitron',
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: GameColors.neonPink,
-                                    letterSpacing: 2,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 20),
-                            NeonButton(
-                              text: 'RESET SCORE',
-                              onPressed: _resetHighScore,
-                              color: GameColors.neonPink,
-                              width: double.infinity,
-                              height: 48,
-                              fontSize: 14,
-                              icon: Icons.delete_outline_rounded,
-                            ),
-                          ],
-                        ),
-                      ),
 
-                      const SizedBox(height: 20),
+                                const SizedBox(height: 20),
 
-                      GlassCard(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Row(
-                              children: [
-                                Icon(
-                                  Icons.gamepad_rounded,
+                                _buildSlider(
+                                  label: 'SFX',
+                                  icon: Icons.surround_sound_rounded,
+                                  value: _sfxVolume,
                                   color: GameColors.neonGreen,
-                                  size: 22,
-                                ),
-                                SizedBox(width: 10),
-                                Text(
-                                  'CONTROLS',
-                                  style: TextStyle(
-                                    fontFamily: 'Orbitron',
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: GameColors.neonGreen,
-                                    letterSpacing: 2,
-                                  ),
+                                  onChanged: _isMuted
+                                      ? null
+                                      : (value) {
+                                          setState(() => _sfxVolume = value);
+                                          _saveSettings();
+                                        },
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 16),
-                            _buildControlRow('←  →', 'Switch lanes'),
-                            _buildControlRow('↑  SPACE', 'Jump'),
-                            _buildControlRow('ESC  P', 'Pause'),
-                            const SizedBox(height: 8),
-                            Divider(
-                              color: GameColors.textSecondary.withValues(
-                                alpha: 0.2,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            _buildControlRow('Swipe L/R', 'Switch lanes'),
-                            _buildControlRow('Swipe Up', 'Jump'),
-                            _buildControlRow('Tap sides', 'Switch lanes'),
-                          ],
-                        ),
-                      ),
+                          ),
 
-                      const SizedBox(height: 40),
-                    ],
+                          const SizedBox(height: 20),
+
+                          GlassCard(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Row(
+                                  children: [
+                                    Icon(
+                                      Icons.storage_rounded,
+                                      color: GameColors.neonPink,
+                                      size: 22,
+                                    ),
+                                    SizedBox(width: 10),
+                                    Text(
+                                      'DATA',
+                                      style: TextStyle(
+                                        fontFamily: 'Orbitron',
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: GameColors.neonPink,
+                                        letterSpacing: 2,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 20),
+                                NeonButton(
+                                  text: 'RESET SCORE',
+                                  onPressed: _resetHighScore,
+                                  color: GameColors.neonPink,
+                                  width: double.infinity,
+                                  height: 48,
+                                  fontSize: 14,
+                                  icon: Icons.delete_outline_rounded,
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          const SizedBox(height: 20),
+
+                          GlassCard(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Row(
+                                  children: [
+                                    Icon(
+                                      Icons.gamepad_rounded,
+                                      color: GameColors.neonGreen,
+                                      size: 22,
+                                    ),
+                                    SizedBox(width: 10),
+                                    Text(
+                                      'CONTROLS',
+                                      style: TextStyle(
+                                        fontFamily: 'Orbitron',
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: GameColors.neonGreen,
+                                        letterSpacing: 2,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 16),
+                                _buildControlRow('←  →', 'Switch lanes'),
+                                _buildControlRow('↑  SPACE', 'Jump'),
+                                _buildControlRow('ESC  P', 'Pause'),
+                                const SizedBox(height: 8),
+                                Divider(
+                                  color: GameColors.textSecondary.withValues(
+                                    alpha: 0.2,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                _buildControlRow('Swipe L/R', 'Switch lanes'),
+                                _buildControlRow('Swipe Up', 'Jump'),
+                                _buildControlRow('Tap sides', 'Switch lanes'),
+                              ],
+                            ),
+                          ),
+
+                          const SizedBox(height: 40),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
               ),

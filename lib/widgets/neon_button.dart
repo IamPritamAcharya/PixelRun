@@ -69,28 +69,31 @@ class _NeonButtonState extends State<NeonButton> {
           ),
         ),
         child: Center(
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (widget.icon != null) ...[
-                Icon(
-                  widget.icon,
-                  color: Colors.white,
-                  size: widget.fontSize + 2,
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (widget.icon != null) ...[
+                  Icon(
+                    widget.icon,
+                    color: Colors.white,
+                    size: widget.fontSize + 2,
+                  ),
+                  const SizedBox(width: 8),
+                ],
+                Text(
+                  widget.text,
+                  style: GoogleFonts.pressStart2p(
+                    fontSize: widget.fontSize,
+                    color: Colors.white,
+                    shadows: const [
+                      Shadow(color: Color(0x88000000), offset: Offset(1, 1)),
+                    ],
+                  ),
                 ),
-                const SizedBox(width: 8),
               ],
-              Text(
-                widget.text,
-                style: GoogleFonts.pressStart2p(
-                  fontSize: widget.fontSize,
-                  color: Colors.white,
-                  shadows: const [
-                    Shadow(color: Color(0x88000000), offset: Offset(1, 1)),
-                  ],
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),
